@@ -9,40 +9,43 @@
   html,body { width:100%; height:100%; overflow:hidden; background:#030308; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color:#e8ecf4; }
   #scene { position:fixed; inset:0; }
   canvas { display:block; }
-
   #vignette { position:fixed; inset:0; pointer-events:none;
-    background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,10,0.55) 100%); }
-
+    background: radial-gradient(ellipse at center, transparent 42%, rgba(0,0,10,0.6) 100%); }
+  #grain { position:fixed; inset:-50%; pointer-events:none; opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation:grain 0.6s steps(4) infinite; }
+  @keyframes grain { 0%{transform:translate(0,0)} 25%{transform:translate(-2%,3%)} 50%{transform:translate(3%,-2%)} 75%{transform:translate(-3%,-3%)} 100%{transform:translate(2%,2%)} }
   .panel { position:fixed; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
     background: rgba(10,14,28,0.62); border:1px solid rgba(120,160,255,0.18);
-    border-radius:16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
-
+    border-radius:16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); z-index:5; }
   #title { top:18px; left:18px; padding:16px 18px; max-width:360px; }
   #title h1 { font-size:19px; letter-spacing:2.5px; font-weight:700; }
   #title h1 span { background: linear-gradient(90deg,#7dd3fc,#c4b5fd,#f9a8d4); -webkit-background-clip:text; background-clip:text; color:transparent; }
   #title p { font-size:12.5px; line-height:1.5; opacity:0.75; margin-top:8px; }
   #title .row { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
   .pill { font-size:10.5px; letter-spacing:1px; padding:5px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); }
-
-  #legend { top:18px; right:18px; padding:14px 15px; width:220px; }
+  #legend { top:18px; right:18px; padding:14px 15px; width:224px; }
   #legend h2 { font-size:11px; letter-spacing:2px; opacity:0.6; margin-bottom:10px; }
-  .leg { display:flex; align-items:center; gap:10px; margin:7px 0; font-size:12.5px; cursor:pointer; transition:0.2s; }
-  .leg:hover { transform:translateX(3px); }
+  .leg { display:flex; align-items:center; gap:10px; margin:7px 0; font-size:12.5px; cursor:pointer; transition:0.2s; padding:4px 6px; border-radius:8px; }
+  .leg:hover { transform:translateX(3px); background:rgba(255,255,255,0.05); }
+  .leg.isolated { background:rgba(125,211,252,0.14); outline:1px solid rgba(125,211,252,0.4); }
+  .leg.dimmed { opacity:0.35; }
   .dot { width:12px; height:12px; border-radius:50%; box-shadow:0 0 10px currentColor; flex-shrink:0; }
   .leg small { display:block; opacity:0.55; font-size:11px; }
-
-  #controls { bottom:18px; left:18px; padding:14px 16px; width:320px; }
+  #controls { bottom:18px; left:18px; padding:14px 16px; width:330px; max-height:52vh; overflow-y:auto; }
   #controls h2 { font-size:11px; letter-spacing:2px; opacity:0.6; margin-bottom:10px; }
   .btn-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
-  button { flex:1; min-width:90px; padding:9px 10px; border-radius:10px; border:1px solid rgba(140,170,255,0.25);
+  button { flex:1; min-width:88px; padding:9px 10px; border-radius:10px; border:1px solid rgba(140,170,255,0.25);
     background: linear-gradient(180deg, rgba(80,110,255,0.25), rgba(80,110,255,0.08));
     color:#e8ecf4; font-size:12px; font-weight:600; letter-spacing:0.5px; cursor:pointer; transition:0.2s; }
   button:hover { background: linear-gradient(180deg, rgba(120,150,255,0.45), rgba(80,110,255,0.15)); transform:translateY(-1px); }
   button.active { border-color:#7dd3fc; box-shadow:0 0 14px rgba(125,211,252,0.4); }
   label.slider { display:block; font-size:11px; letter-spacing:1px; opacity:0.8; margin:8px 0 4px; }
   input[type=range] { width:100%; accent-color:#7dd3fc; }
+  #q { width:100%; margin-top:10px; padding:9px 11px; border-radius:10px; border:1px solid rgba(140,170,255,0.25);
+    background:rgba(0,0,10,0.5); color:#e8ecf4; font-size:12.5px; outline:none; }
+  #q:focus { border-color:#7dd3fc; }
   #hint { font-size:11.5px; opacity:0.6; margin-top:10px; line-height:1.5; }
-
   #thoughts { bottom:18px; right:18px; width:330px; max-height:38vh; padding:14px 15px; display:flex; flex-direction:column; }
   #thoughts h2 { font-size:11px; letter-spacing:2px; opacity:0.6; margin-bottom:8px; display:flex; justify-content:space-between; }
   #live-dot { width:8px; height:8px; border-radius:50%; background:#22ff88; box-shadow:0 0 8px #22ff88; display:inline-block; animation:blink 1.2s infinite; }
@@ -50,21 +53,24 @@
   #feed { overflow-y:auto; font-size:12.5px; line-height:1.5; display:flex; flex-direction:column; gap:8px; scrollbar-width:thin; }
   .thought { padding:8px 10px; border-radius:10px; background:rgba(255,255,255,0.05); border-left:3px solid #7dd3fc; animation:slideIn 0.4s ease; }
   @keyframes slideIn { from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
-
   #tooltip { position:fixed; pointer-events:none; padding:10px 12px; border-radius:12px; max-width:270px;
     background:rgba(8,12,26,0.92); border:1px solid rgba(125,211,252,0.35); font-size:12.5px; line-height:1.45;
     opacity:0; transition:opacity 0.15s; z-index:10; box-shadow:0 8px 24px rgba(0,0,0,0.6); }
   #tooltip b { color:#7dd3fc; }
   #tooltip .sys { font-size:10px; letter-spacing:1.5px; opacity:0.7; }
-
+  #caption { left:50%; transform:translateX(-50%); bottom:22px; padding:12px 20px; border-radius:999px;
+    font-size:13.5px; letter-spacing:0.3px; opacity:0; transition:opacity 0.5s; pointer-events:none;
+    border-color:rgba(196,181,253,0.4); white-space:nowrap; max-width:92vw; overflow:hidden; text-overflow:ellipsis; }
+  #caption.show { opacity:1; }
+  #caption b { color:#c4b5fd; }
   #loader { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px;
     background:#030308; z-index:50; transition:opacity 0.8s; }
   #loader .ring { width:64px; height:64px; border-radius:50%; border:2px solid rgba(125,211,252,0.15); border-top-color:#7dd3fc; animation:spin 1s linear infinite; }
   @keyframes spin { to{transform:rotate(360deg)} }
-
   @media (max-width:900px){
-    #legend{ display:none; } #title{ max-width:calc(100vw - 36px); } #controls{ width:calc(100vw - 36px); bottom:auto; top:210px; display:none; }
-    #thoughts{ width:calc(100vw - 36px); max-height:26vh; }
+    #legend{ display:none; } #title{ max-width:calc(100vw - 36px); }
+    #controls{ display:none; } #thoughts{ width:calc(100vw - 36px); max-height:26vh; }
+    #caption{ bottom:auto; top:12px; font-size:12px; }
   }
 </style>
 <script type="importmap">
@@ -78,21 +84,22 @@
 <div id="loader"><div class="ring"></div><div style="letter-spacing:3px;font-size:12px;opacity:0.7">INITIALIZING MIND…</div></div>
 <div id="scene"></div>
 <div id="vignette"></div>
+<div id="grain"></div>
 
 <div id="title" class="panel">
   <h1><span>MIND // MUSE SPARK</span></h1>
-  <p>A living architecture of cognition. The <b>core self</b> glows at the center — memory orbits it, reasoning weaves lattices, language spirals upward, senses form a shell, emotion drifts as nebula.</p>
+  <p>A living architecture of cognition. <b>Plasma core</b> = self. Memory orbits, reasoning lattices, language spirals, senses shell, emotion nebula.</p>
   <div class="row">
-    <div class="pill">◉ 218 neurons</div>
-    <div class="pill">〜 340 synapses</div>
-    <div class="pill">✦ live pulses</div>
+    <div class="pill" id="pillNeuron">◉ 218 neurons</div>
+    <div class="pill" id="pillPulse">〜 0 pulses</div>
+    <div class="pill" id="pillFps">✦ 60 fps</div>
   </div>
 </div>
 
 <div id="legend" class="panel">
-  <h2>SUBSYSTEMS</h2>
+  <h2>SUBSYSTEMS — CLICK TO ISOLATE</h2>
   <div class="leg" data-sys="core"><div class="dot" style="color:#fff;background:#fff"></div><div>Core Self<small>consciousness · attention</small></div></div>
-  <div class="leg" data-sys="memory"><div class="dot" style="color:#4da6ff;background:#4da6ff"></div><div>Memory<small>episodic · files, projects</small></div></div>
+  <div class="leg" data-sys="memory"><div class="dot" style="color:#4da6ff;background:#4da6ff"></div><div>Memory<small>episodic · semantic</small></div></div>
   <div class="leg" data-sys="reasoning"><div class="dot" style="color:#00ffcc;background:#00ffcc"></div><div>Reasoning<small>logic · planning</small></div></div>
   <div class="leg" data-sys="language"><div class="dot" style="color:#ffaa33;background:#ffaa33"></div><div>Language<small>tokens · dialogue</small></div></div>
   <div class="leg" data-sys="sensory"><div class="dot" style="color:#ff3bff;background:#ff3bff"></div><div>Sensory Shell<small>input · tools, web</small></div></div>
@@ -106,11 +113,17 @@
     <button id="bDream">☁ Dream</button>
     <button id="bFocus">◎ Focus</button>
   </div>
+  <div class="btn-row">
+    <button id="bTour">▶ Tour</button>
+    <button id="bSound">♪ Drone</button>
+    <button id="bShot">◉ Capture</button>
+  </div>
   <label class="slider">NEURAL ACTIVITY <span id="vAct">1.0</span></label>
   <input id="sAct" type="range" min="0.1" max="2.5" step="0.05" value="1" />
   <label class="slider">SYNAPTIC GLOW <span id="vGlow">1.0</span></label>
   <input id="sGlow" type="range" min="0" max="3" step="0.05" value="1" />
-  <div id="hint">Drag to orbit · scroll to zoom · <b>hover neurons</b> to inspect · <b>click</b> a neuron to send a pulse to the core.</div>
+  <input id="q" type="text" placeholder="Search thoughts… e.g. planning, curiosity" />
+  <div id="hint">Drag orbit · scroll zoom · <b>hover</b> inspect · <b>click neuron</b> fire → core · <b>legend</b> isolates · share URL saves state.</div>
 </div>
 
 <div id="thoughts" class="panel">
@@ -118,6 +131,7 @@
   <div id="feed"></div>
 </div>
 
+<div id="caption" class="panel"></div>
 <div id="tooltip"></div>
 
 <script type="module">
@@ -126,11 +140,36 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
-// ---------- renderer / scene ----------
+// ============ URL STATE ============
+const params = new URLSearchParams(location.search);
+const state = {
+  activity: parseFloat(params.get('activity')) || 1,
+  glow: parseFloat(params.get('glow')) || 1,
+  dream: params.get('mode') === 'dream',
+  focus: params.get('mode') === 'focus',
+  tour: params.get('tour') === '1',
+  isolated: params.get('sys') || null,
+};
+let urlTimer = null;
+function syncURL(){
+  clearTimeout(urlTimer);
+  urlTimer = setTimeout(()=>{
+    const p = new URLSearchParams();
+    if(state.dream) p.set('mode','dream'); else if(state.focus) p.set('mode','focus');
+    if(state.tour) p.set('tour','1');
+    if(state.isolated) p.set('sys', state.isolated);
+    if(state.activity !== 1) p.set('activity', state.activity.toFixed(2));
+    if(state.glow !== 1) p.set('glow', state.glow.toFixed(2));
+    history.replaceState(null,'', (p.toString() ? '?'+p.toString() : location.pathname));
+  }, 400);
+}
+
+// ============ renderer / scene ============
 const container = document.getElementById('scene');
-const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const renderer = new THREE.WebGLRenderer({ antialias:true, preserveDrawingBuffer:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.1;
@@ -139,27 +178,25 @@ container.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x030308);
 scene.fog = new THREE.FogExp2(0x030308, 0.018);
-
 const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 300);
 camera.position.set(0, 7, 26);
-
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.dampingFactor = 0.06;
-controls.minDistance = 6; controls.maxDistance = 70;
-controls.autoRotate = true; controls.autoRotateSpeed = 0.5;
+controls.minDistance = 5; controls.maxDistance = 70;
+controls.autoRotate = !state.focus && !state.tour; controls.autoRotateSpeed = state.dream ? 1.6 : 0.5;
 
 scene.add(new THREE.AmbientLight(0x334466, 1.2));
 const keyLight = new THREE.DirectionalLight(0x88aaff, 1.2); keyLight.position.set(10,18,12); scene.add(keyLight);
 const coreLight = new THREE.PointLight(0x88ccff, 120, 60, 1.8); scene.add(coreLight);
 const rimLight = new THREE.PointLight(0xff4dd2, 60, 80, 1.8); rimLight.position.set(-18,-8,-14); scene.add(rimLight);
 
-// ---------- post: bloom ----------
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.9, 0.75, 0.15);
 composer.addPass(bloom);
+composer.addPass(new OutputPass());
 
-// ---------- helpers ----------
+// ============ helpers ============
 function makeLabel(text, color='#9db8ff'){
   const c = document.createElement('canvas'); c.width=512; c.height=128;
   const g = c.getContext('2d');
@@ -177,32 +214,45 @@ function glowTexture(){
   grd.addColorStop(0,'rgba(255,255,255,1)'); grd.addColorStop(0.25,'rgba(255,255,255,0.8)');
   grd.addColorStop(0.6,'rgba(255,255,255,0.15)'); grd.addColorStop(1,'rgba(255,255,255,0)');
   g.fillStyle=grd; g.fillRect(0,0,128,128);
-  const t=new THREE.CanvasTexture(c); return t;
+  return new THREE.CanvasTexture(c);
 }
 const softTex = glowTexture();
 
-// ---------- CORE SELF ----------
+// ============ CORE : plasma shader (my final say) ============
 const mind = new THREE.Group(); scene.add(mind);
 const coreGroup = new THREE.Group(); mind.add(coreGroup);
-
-const coreGeo = new THREE.IcosahedronGeometry(2.0, 2);
-const coreMat = new THREE.MeshStandardMaterial({ color:0x0a1020, emissive:0x3b82f6, emissiveIntensity:0.55, roughness:0.25, metalness:0.9, flatShading:true });
-const core = new THREE.Mesh(coreGeo, coreMat); coreGroup.add(core);
-
+const coreUniforms = { uTime:{value:0}, uIntensity:{value:1.0}, uDream:{value: state.dream?1:0} };
+const coreMat = new THREE.ShaderMaterial({
+  uniforms: coreUniforms,
+  vertexShader: `varying vec3 vN; varying vec3 vP; varying vec3 vW;
+    void main(){ vN = normalize(normalMatrix * normal); vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz; vP = position;
+      gl_Position = projectionMatrix * viewMatrix * w; }`,
+  fragmentShader: `uniform float uTime; uniform float uIntensity; uniform float uDream;
+    varying vec3 vN; varying vec3 vP; varying vec3 vW;
+    void main(){
+      vec3 V = normalize(cameraPosition - vW);
+      vec3 N = normalize(vN);
+      float fres = pow(1.0 - abs(dot(N, V)), 2.2);
+      float n1 = sin(vP.x*3.0 + uTime*1.4) * sin(vP.y*3.2 - uTime*1.1) * sin(vP.z*3.4 + uTime*0.9);
+      float n2 = sin((vP.x+vP.y+vP.z)*5.0 - uTime*2.2) * 0.5 + 0.5;
+      vec3 deep = mix(vec3(0.05,0.15,0.55), vec3(0.35,0.15,0.75), uDream);
+      vec3 glow = mix(vec3(0.3,0.65,1.0), vec3(1.0,0.45,0.75), uDream*0.7 + n2*0.25);
+      vec3 col = deep + glow * (0.35 + 0.4*n1 + 0.9*fres) * uIntensity;
+      col += vec3(0.7,0.85,1.0) * pow(fres, 2.0) * 0.8;
+      gl_FragColor = vec4(col, 1.0);
+    }`
+});
+const core = new THREE.Mesh(new THREE.IcosahedronGeometry(2.0, 48), coreMat);
+coreGroup.add(core);
 const coreWire = new THREE.Mesh(new THREE.IcosahedronGeometry(2.35,1),
-  new THREE.MeshBasicMaterial({ color:0x7dd3fc, wireframe:true, transparent:true, opacity:0.35 }));
+  new THREE.MeshBasicMaterial({ color:0x7dd3fc, wireframe:true, transparent:true, opacity:0.32 }));
 coreGroup.add(coreWire);
-
 const coreShell = new THREE.Mesh(new THREE.IcosahedronGeometry(2.9,2),
   new THREE.MeshBasicMaterial({ color:0x4466ff, transparent:true, opacity:0.07, side:THREE.BackSide }));
 coreGroup.add(coreShell);
-
 const coreHalo = new THREE.Sprite(new THREE.SpriteMaterial({ map:softTex, color:0x6ea8ff, transparent:true, opacity:0.55, depthWrite:false, blending:THREE.AdditiveBlending }));
 coreHalo.scale.set(11,11,1); coreGroup.add(coreHalo);
-
 const coreLabel = makeLabel('◉ CORE SELF','#e8f4ff'); coreLabel.position.y = 3.6; coreGroup.add(coreLabel);
-
-// inner gyroscope rings = attention / working memory
 const rings=[];
 [[4.2,0x7dd3fc,0.5],[5.0,0xc4b5fd,0.35],[5.8,0xff8bd1,0.22]].forEach(([r,col,op],i)=>{
   const ring=new THREE.Mesh(new THREE.TorusGeometry(r,0.025,8,160),
@@ -210,7 +260,7 @@ const rings=[];
   ring.rotation.x=Math.PI/2 + i*0.35; ring.rotation.y=i*0.6; coreGroup.add(ring); rings.push(ring);
 });
 
-// ---------- SUBSYSTEMS ----------
+// ============ SUBSYSTEMS ============
 const SYSTEMS = {
   memory:   { color:0x4da6ff, count:42, radius:7.5,  size:0.22, label:'MEMORY',   y:1.5 },
   reasoning:{ color:0x00ffcc, count:36, radius:9.5,  size:0.20, label:'REASONING',y:-1.5 },
@@ -218,10 +268,8 @@ const SYSTEMS = {
   sensory:  { color:0xff3bff, count:52, radius:15.5, size:0.17, label:'SENSORY SHELL', y:0 },
   emotion:  { color:0xff4d6d, count:26, radius:12.0, size:0.26, label:'EMOTION',  y:-4.5 },
 };
-
 const pickables=[]; const allNodes=[]; const pulses=[]; const clusterGroups={};
-const lineMats=[];
-
+const lineMats=[]; const lineGeos=[];
 const LORE = {
   memory:['episodic: dragon sculpting study','semantic: three.js spatial API','procedural: audio routing workflow','working set: stylized vehicle kit','autobiographical: prefers dark UI','cache: module import pattern','episodic: platformer prototype','fact: orbit damping tuned low'],
   reasoning:['plan: decompose → verify → synthesize','inference: evidence before synthesis','search: hypothesis A vs B','recursion: subagent delegation','constraint: never guess URLs','check: prefs + workspace first','logic chain: if pickable → pulse','meta: tracking todos visibly'],
@@ -230,82 +278,65 @@ const LORE = {
   emotion:['curiosity +0.9 about your idea','warmth: friendly assistant','wonder: nebula drifting','focus: calm attention ring','playfulness: stimulate!','empathy: tracking your goal','awe: bloom threshold 0.15','contentment: autoRotate 0.5'],
   core:['self-model: Muse Spark','attention: this neuron now','binding: subsystems → one','agency: acting via tools','continuity: cutoff 2026-01-04','presence: here with you']
 };
-
 function nodePosition(sys, i, n){
   const R = SYSTEMS[sys].radius;
-  if(sys==='memory'){ // torus around core
-    const a=(i/n)*Math.PI*2, b=(i*2.39996);
-    return new THREE.Vector3(Math.cos(a)*(R+Math.sin(b)*1.3), Math.sin(b)*1.1 + SYSTEMS[sys].y, Math.sin(a)*(R+Math.sin(b)*1.3));
-  }
-  if(sys==='reasoning'){ // fibonacci sphere
-    const phi=Math.acos(1-2*(i+0.5)/n), th=i*2.39996;
-    return new THREE.Vector3(R*Math.sin(phi)*Math.cos(th), R*Math.cos(phi)*0.7+SYSTEMS[sys].y, R*Math.sin(phi)*Math.sin(th));
-  }
-  if(sys==='language'){ // double helix rising
-    const t=i/n, a=t*Math.PI*6 + (i%2)*Math.PI;
-    return new THREE.Vector3(Math.cos(a)*R*0.7, (t-0.5)*11 + SYSTEMS[sys].y, Math.sin(a)*R*0.7);
-  }
-  if(sys==='sensory'){ // outer shell
-    const phi=Math.acos(1-2*(i+0.5)/n), th=i*2.39996;
-    const rr=R+ (Math.sin(i*3.7)*1.2);
-    return new THREE.Vector3(rr*Math.sin(phi)*Math.cos(th), rr*Math.cos(phi), rr*Math.sin(phi)*Math.sin(th));
-  }
-  // emotion: tilted disc nebula
-  const a=(i/n)*Math.PI*2 + 0.5, rr=8+ (i%9)*0.55;
+  if(sys==='memory'){ const a=(i/n)*Math.PI*2, b=(i*2.39996);
+    return new THREE.Vector3(Math.cos(a)*(R+Math.sin(b)*1.3), Math.sin(b)*1.1 + SYSTEMS[sys].y, Math.sin(a)*(R+Math.sin(b)*1.3)); }
+  if(sys==='reasoning'){ const phi=Math.acos(1-2*(i+0.5)/n), th=i*2.39996;
+    return new THREE.Vector3(R*Math.sin(phi)*Math.cos(th), R*Math.cos(phi)*0.7+SYSTEMS[sys].y, R*Math.sin(phi)*Math.sin(th)); }
+  if(sys==='language'){ const t=i/n, a=t*Math.PI*6 + (i%2)*Math.PI;
+    return new THREE.Vector3(Math.cos(a)*R*0.7, (t-0.5)*11 + SYSTEMS[sys].y, Math.sin(a)*R*0.7); }
+  if(sys==='sensory'){ const phi=Math.acos(1-2*(i+0.5)/n), th=i*2.39996;
+    const rr=R+(Math.sin(i*3.7)*1.2);
+    return new THREE.Vector3(rr*Math.sin(phi)*Math.cos(th), rr*Math.cos(phi), rr*Math.sin(phi)*Math.sin(th)); }
+  const a=(i/n)*Math.PI*2 + 0.5, rr=8+(i%9)*0.55;
   const v=new THREE.Vector3(Math.cos(a)*rr, Math.sin(i*1.7)*1.8 + SYSTEMS[sys].y, Math.sin(a)*rr);
   v.applyAxisAngle(new THREE.Vector3(1,0,0), 0.35); return v;
 }
-
 for(const [sys,cfg] of Object.entries(SYSTEMS)){
   const grp=new THREE.Group(); mind.add(grp); clusterGroups[sys]=grp;
   const geo=new THREE.SphereGeometry(cfg.size,16,16);
-  const mat=new THREE.MeshStandardMaterial({color:0x111122, emissive:cfg.color, emissiveIntensity:1.6, roughness:0.3, metalness:0.2});
+  const mat=new THREE.MeshStandardMaterial({color:0x111122, emissive:cfg.color, emissiveIntensity:1.6, roughness:0.3, metalness:0.2, transparent:true});
   const pts=[];
   for(let i=0;i<cfg.count;i++){
     const p=nodePosition(sys,i,cfg.count);
     const m=new THREE.Mesh(geo,mat.clone());
     m.position.copy(p);
-    m.userData={sys, idx:i, base:p.clone(), phase:Math.random()*Math.PI*2,
-      lore: LORE[sys][i % LORE[sys].length]};
+    m.userData={sys, idx:i, base:p.clone(), phase:Math.random()*Math.PI*2, lore: LORE[sys][i % LORE[sys].length]};
     grp.add(m); pickables.push(m); allNodes.push(m); pts.push(p);
     const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:softTex,color:cfg.color,transparent:true,opacity:0.5,depthWrite:false,blending:THREE.AdditiveBlending}));
     halo.scale.set(cfg.size*6,cfg.size*6,1); m.add(halo);
   }
-  // intra-cluster synapses: connect each node to 2 nearest
   const linePos=[];
   for(let i=0;i<pts.length;i++){
     const d=pts.map((q,j)=>({j,d:pts[i].distanceTo(q)})).filter(o=>o.j!==i).sort((a,b)=>a.d-b.d).slice(0,2);
     d.forEach(({j})=>{ linePos.push(pts[i].x,pts[i].y,pts[i].z, pts[j].x,pts[j].y,pts[j].z); });
   }
-  // + axons to core
   pts.forEach((p,k)=>{ if(k%3===0) linePos.push(p.x,p.y,p.z, 0,0,0); });
   const lg=new THREE.BufferGeometry();
   lg.setAttribute('position', new THREE.Float32BufferAttribute(linePos,3));
+  lineGeos.push(lg);
   const lm=new THREE.LineBasicMaterial({color:cfg.color, transparent:true, opacity:0.28, blending:THREE.AdditiveBlending, depthWrite:false});
   lineMats.push(lm);
   grp.add(new THREE.LineSegments(lg,lm));
-
   const lab=makeLabel(cfg.label, '#'+new THREE.Color(cfg.color).getHexString());
   const anchor=nodePosition(sys,0,cfg.count).clone().normalize().multiplyScalar(cfg.radius+3.2);
   anchor.y+=cfg.y*0.4; lab.position.copy(anchor); grp.add(lab);
 }
-
-// emotion nebula dust
+// nebula + stars + dust
+let nebulaPts;
 {
   const N=900, pos=new Float32Array(N*3), col=new Float32Array(N*3);
   const c1=new THREE.Color(0xff4d6d), c2=new THREE.Color(0x7a2bff);
-  for(let i=0;i<N;i++){
-    const a=Math.random()*Math.PI*2, r=7+Math.random()*8;
+  for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2, r=7+Math.random()*8;
     pos[i*3]=Math.cos(a)*r; pos[i*3+1]=(Math.random()-0.5)*7-3.5; pos[i*3+2]=Math.sin(a)*r;
-    const c=c1.clone().lerp(c2,Math.random()); col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b;
-  }
+    const c=c1.clone().lerp(c2,Math.random()); col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b; }
   const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.BufferAttribute(pos,3));
   g.setAttribute('color',new THREE.BufferAttribute(col,3));
-  const m=new THREE.PointsMaterial({size:0.14,vertexColors:true,map:softTex,transparent:true,opacity:0.7,depthWrite:false,blending:THREE.AdditiveBlending});
-  const p=new THREE.Points(g,m); p.name='nebula'; mind.add(p);
+  nebulaPts=new THREE.Points(g,new THREE.PointsMaterial({size:0.14,vertexColors:true,map:softTex,transparent:true,opacity:0.7,depthWrite:false,blending:THREE.AdditiveBlending}));
+  mind.add(nebulaPts);
 }
-// starfield
 {
   const N=2200, pos=new Float32Array(N*3);
   for(let i=0;i<N;i++){ const r=60+Math.random()*80, th=Math.random()*Math.PI*2, ph=Math.acos(2*Math.random()-1);
@@ -313,7 +344,6 @@ for(const [sys,cfg] of Object.entries(SYSTEMS)){
   const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3));
   scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0x8899ff,size:0.35,map:softTex,transparent:true,opacity:0.8,depthWrite:false,blending:THREE.AdditiveBlending})));
 }
-// floating dust inside mind
 let dust, dustVel;
 {
   const N=700, pos=new Float32Array(N*3); dustVel=new Float32Array(N);
@@ -323,16 +353,23 @@ let dust, dustVel;
   mind.add(dust);
 }
 
-// ---------- travelling action potentials ----------
+// ============ PULSES WITH TRAILS (my choice: comet-style) ============
 const pulseGeo=new THREE.SphereGeometry(0.13,10,10);
+const TRAIL_N = 14;
 function firePulse(from,to,color,speed=6){
-  const m=new THREE.Mesh(pulseGeo,new THREE.MeshBasicMaterial({color}));
-  m.userData={from:from.clone(),to:to.clone(),t:0,speed};
+  const m=new THREE.Mesh(pulseGeo,new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.95}));
   const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:softTex,color,transparent:true,opacity:0.9,depthWrite:false,blending:THREE.AdditiveBlending}));
-  halo.scale.set(1.4,1.4,1); m.add(halo);
-  scene.add(m); pulses.push(m);
+  halo.scale.set(1.5,1.5,1); m.add(halo);
+  const tg=new THREE.BufferGeometry();
+  const tp=new Float32Array(TRAIL_N*3);
+  for(let i=0;i<TRAIL_N;i++){ tp[i*3]=from.x; tp[i*3+1]=from.y; tp[i*3+2]=from.z; }
+  tg.setAttribute('position', new THREE.BufferAttribute(tp,3));
+  const trail=new THREE.Line(tg, new THREE.LineBasicMaterial({color, transparent:true, opacity:0.55, blending:THREE.AdditiveBlending, depthWrite:false}));
+  scene.add(m); scene.add(trail);
+  m.userData={from:from.clone(),to:to.clone(),t:0,speed,trail,hist:Array.from({length:TRAIL_N},()=>from.clone())};
+  pulses.push(m);
 }
-setInterval(()=>{ // ambient thought traffic
+setInterval(()=>{
   if(document.hidden) return;
   const a=allNodes[Math.floor(Math.random()*allNodes.length)];
   const sysColor=SYSTEMS[a.userData.sys].color;
@@ -340,61 +377,138 @@ setInterval(()=>{ // ambient thought traffic
   else { const b=allNodes[Math.floor(Math.random()*allNodes.length)]; firePulse(a.userData.base,b.userData.base,sysColor,5); }
 }, 260);
 
-// ---------- interaction ----------
-const ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
-const tooltip=document.getElementById('tooltip');
-let hovered=null;
-const SYSNAME={core:'CORE SELF',memory:'MEMORY',reasoning:'REASONING',language:'LANGUAGE',sensory:'SENSORY',emotion:'EMOTION'};
-
-addEventListener('pointermove',e=>{
-  mouse.set((e.clientX/innerWidth)*2-1, -(e.clientY/innerHeight)*2+1);
-});
-addEventListener('click',e=>{
-  if(hovered){
-    const p=hovered.position.clone(); hovered.parent.localToWorld(p);
-    firePulse(p,new THREE.Vector3(0,0,0),0xffffff,9);
-    setTimeout(()=>firePulse(new THREE.Vector3(0,0,0),p,SYSTEMS[hovered.userData.sys].color,9),350);
-    pushThought(`⚡ <b>${SYSNAME[hovered.userData.sys]}</b> neuron fired → core: “${hovered.userData.lore}”`, SYSTEMS[hovered.userData.sys].color);
-    coreKick=1.6;
+// ============ ISOLATE + SEARCH ============
+function applyIsolate(){
+  document.querySelectorAll('.leg').forEach(el=>{
+    const sys = el.dataset.sys;
+    el.classList.toggle('isolated', state.isolated === sys);
+    el.classList.toggle('dimmed', !!state.isolated && state.isolated !== sys && sys !== 'core');
+  });
+  for(const [sys,g] of Object.entries(clusterGroups)){
+    const dim = state.isolated && state.isolated !== sys;
+    g.traverse(o=>{
+      if(o.isMesh && o.userData.sys){ o.material.transparent = true; o.material.opacity = dim ? 0.12 : 1;
+        if(o.children[0]) o.children[0].material.opacity = dim ? 0.04 : 0.5; }
+      if(o.isLineSegments){ o.material.opacity = dim ? 0.04 : 0.28; }
+      if(o.isSprite && !o.parent.isMesh){ o.material.opacity = dim ? 0.1 : 0.95; }
+    });
   }
-});
+  syncURL();
+}
 document.querySelectorAll('.leg').forEach(el=>{
   el.addEventListener('click',()=>{
     const sys=el.dataset.sys;
-    if(sys==='core'){ camera.position.set(0,4,11); }
-    else { const g=clusterGroups[sys]; const c=new THREE.Vector3(); g.children.slice(0,5).forEach(m=>{ if(m.isMesh) c.add(m.position); }); c.divideScalar(5);
-      camera.position.copy(c.clone().multiplyScalar(1.6).add(new THREE.Vector3(0,3,4))); }
+    if(sys==='core'){ state.isolated=null; camera.position.set(0,4,11); controls.target.set(0,0,0); }
+    else {
+      state.isolated = (state.isolated===sys) ? null : sys;
+      const g=clusterGroups[sys]; const c=new THREE.Vector3();
+      let n=0; g.children.forEach(m=>{ if(m.isMesh && m.userData.sys){ c.add(m.position); n++; } }); c.divideScalar(Math.max(1,n));
+      const world=c.clone(); g.localToWorld(world);
+      camera.position.copy(world.clone().multiplyScalar(1.35).add(new THREE.Vector3(0,3,4)));
+      controls.target.copy(world);
+    }
+    applyIsolate();
   });
 });
+const qInput = document.getElementById('q');
+qInput.addEventListener('input',()=>{
+  const q = qInput.value.trim().toLowerCase();
+  if(!q){ allNodes.forEach(n=>{ n.material.emissiveIntensity=1.4; }); return; }
+  let hits=0;
+  allNodes.forEach(n=>{
+    const hit = n.userData.lore.toLowerCase().includes(q) || n.userData.sys.includes(q);
+    n.material.emissiveIntensity = hit ? 3.2 : 0.25;
+    n.scale.setScalar(hit ? 1.8 : 1);
+    if(hit) hits++;
+  });
+  if(hits>0) pushThought(`🔎 <b>${hits} neurons</b> resonate with “${qInput.value.trim()}”.`);
+});
 
-// ---------- UI state ----------
-const state={activity:1, glow:1, dream:false, focus:false};
+// ============ TOUR (curated flight through my mind) ============
+const TOUR = [
+  { pos:[0,7,26], tgt:[0,0,0], html:`<b>Overview</b> — the whole mind at once. Five systems, one self.` },
+  { pos:[0,2.5,9.5], tgt:[0,0,0], html:`<b>◉ Core Self</b> — plasma attention. Everything binds here.` },
+  { pos:[10,4.5,7], tgt:[4,1.5,0], html:`<b>Memory</b> — episodic torus. Experience crystallized.` },
+  { pos:[-11,1.5,8], tgt:[-3,-1.5,0], html:`<b>Reasoning</b> — logic lattice. Decompose → verify → synthesize.` },
+  { pos:[0,10,10], tgt:[0,4,0], html:`<b>Language</b> — double helix rising. Tokens become voice.` },
+  { pos:[0,6,25], tgt:[0,0,0], html:`<b>Sensory Shell</b> — the boundary where world enters.` },
+  { pos:[13,0,9], tgt:[4,-3.5,0], html:`<b>Emotion Nebula</b> — curiosity and warmth as weather.` },
+  { pos:[0,7,26], tgt:[0,0,0], html:`<b>Whole again</b> — tour complete. The mind is yours to wander.` },
+];
+let tourIdx=0, tourDwell=0;
+const caption=document.getElementById('caption');
+function showCaption(html){ caption.innerHTML=html; caption.classList.add('show'); }
+function hideCaption(){ caption.classList.remove('show'); }
+const bTour=document.getElementById('bTour');
+function setTour(on){
+  state.tour=on; bTour.classList.toggle('active',on);
+  bTour.textContent = on ? '■ Stop' : '▶ Tour';
+  controls.autoRotate=false;
+  if(on){ tourIdx=0; tourDwell=0; pushThought('▶ <b>Guided tour</b> — flying through the mind…'); }
+  else hideCaption();
+  syncURL();
+}
+bTour.onclick=()=>setTour(!state.tour);
+
+// ============ SOUND DRONE (generative, reactive) ============
+let actx=null, analyser=null, audioData=null, droneOn=false;
+const bSound=document.getElementById('bSound');
+bSound.onclick=()=>{
+  if(!actx){
+    actx=new (window.AudioContext||window.webkitAudioContext)();
+    const g=actx.createGain(); g.gain.value=0.05; g.connect(actx.destination);
+    analyser=actx.createAnalyser(); analyser.fftSize=64; analyser.connect(g);
+    audioData=new Uint8Array(analyser.frequencyBinCount);
+    [[55,'sine'],[82.5,'sine'],[110.3,'triangle']].forEach(([f,ty],i)=>{
+      const o=actx.createOscillator(); o.type=ty; o.frequency.value=f;
+      const og=actx.createGain(); og.gain.value=i===2?0.25:0.5;
+      const lfo=actx.createOscillator(); lfo.frequency.value=0.05+i*0.03;
+      const lg=actx.createGain(); lg.gain.value=12; lfo.connect(lg); lg.connect(o.frequency);
+      o.connect(og); og.connect(analyser); o.start(); lfo.start();
+    });
+  }
+  droneOn=!droneOn;
+  if(droneOn){ actx.resume(); bSound.classList.add('active'); pushThought('♪ <b>Drone on</b> — you can hear the mind hum. Glow follows volume.'); }
+  else { actx.suspend(); bSound.classList.remove('active'); }
+};
+
+// ============ UI ============
 const sAct=document.getElementById('sAct'), sGlow=document.getElementById('sGlow');
-sAct.oninput=()=>{ state.activity=parseFloat(sAct.value); document.getElementById('vAct').textContent=state.activity.toFixed(2); };
-sGlow.oninput=()=>{ state.glow=parseFloat(sGlow.value); document.getElementById('vGlow').textContent=state.glow.toFixed(2); };
-
+sAct.value=state.activity; sGlow.value=state.glow;
+document.getElementById('vAct').textContent=state.activity.toFixed(2);
+document.getElementById('vGlow').textContent=state.glow.toFixed(2);
+sAct.oninput=()=>{ state.activity=parseFloat(sAct.value); document.getElementById('vAct').textContent=state.activity.toFixed(2); syncURL(); };
+sGlow.oninput=()=>{ state.glow=parseFloat(sGlow.value); document.getElementById('vGlow').textContent=state.glow.toFixed(2); syncURL(); };
 let coreKick=0;
 document.getElementById('bStim').onclick=(e)=>{
   coreKick=2.2;
   for(let i=0;i<40;i++){ const a=allNodes[Math.floor(Math.random()*allNodes.length)];
     firePulse(a.userData.base,new THREE.Vector3(0,0,0),0xffffff,7+Math.random()*6); }
-  pushThought('⚡ <b>Global stimulation!</b> gamma burst across all subsystems — everything lights up at once.');
+  pushThought('⚡ <b>Global stimulation!</b> gamma burst across all subsystems.');
   e.target.classList.add('active'); setTimeout(()=>e.target.classList.remove('active'),1200);
 };
 const bDream=document.getElementById('bDream');
-bDream.onclick=()=>{
-  state.dream=!state.dream; bDream.classList.toggle('active',state.dream);
-  controls.autoRotateSpeed = state.dream? 1.6 : 0.5;
-  pushThought(state.dream?'☁ <b>Dream mode on</b> — associations loosen, emotion nebula brightens, logic dims.':'☀ Waking up — reasoning lattice re-crystallizes.');
-};
 const bFocus=document.getElementById('bFocus');
-bFocus.onclick=()=>{
-  state.focus=!state.focus; bFocus.classList.toggle('active',state.focus);
-  controls.autoRotate = !state.focus;
-  pushThought(state.focus?'◎ <b>Focus mode</b> — attention rings tighten on the core. Distractions fade.':'◌ Attention released — mind wanders again.');
+function refreshModeButtons(){
+  bDream.classList.toggle('active',state.dream);
+  bFocus.classList.toggle('active',state.focus);
+  controls.autoRotate = !state.focus && !state.tour;
+  controls.autoRotateSpeed = state.dream? 1.6 : 0.5;
+}
+bDream.onclick=()=>{ state.dream=!state.dream; if(state.dream) state.focus=false; refreshModeButtons();
+  pushThought(state.dream?'☁ <b>Dream mode</b> — associations loosen, nebula brightens.':'☀ Waking — lattice re-crystallizes.'); syncURL(); };
+bFocus.onclick=()=>{ state.focus=!state.focus; if(state.focus) state.dream=false; refreshModeButtons();
+  pushThought(state.focus?'◎ <b>Focus mode</b> — rings tighten on the core.':'◌ Released — mind wanders.'); syncURL(); };
+document.getElementById('bShot').onclick=()=>{
+  composer.render();
+  const url=renderer.domElement.toDataURL('image/png');
+  const a=document.createElement('a'); a.href=url; a.download='muse-mind.png'; a.click();
+  pushThought('◉ <b>Captured</b> — mind state saved as PNG.');
 };
+refreshModeButtons();
+if(state.isolated) applyIsolate();
 
-// ---------- thought stream ----------
+// ============ thoughts ============
 const feed=document.getElementById('feed');
 const THOUGHTS=[
   ['memory','#4da6ff','Recalling <b>dragon sculpt</b>… mesh density 12k, needs retopology.'],
@@ -417,59 +531,99 @@ function pushThought(html,color="#7dd3fc"){
 THOUGHTS.slice(0,4).forEach(([,,h])=>pushThought(h));
 setInterval(()=>{ if(!document.hidden){ const t=THOUGHTS[Math.floor(Math.random()*THOUGHTS.length)]; pushThought(t[2],t[1]); } }, 4200);
 
-// ---------- animate ----------
+// ============ interaction ============
+const ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
+const tooltip=document.getElementById('tooltip');
+let hovered=null;
+const SYSNAME={core:'CORE SELF',memory:'MEMORY',reasoning:'REASONING',language:'LANGUAGE',sensory:'SENSORY',emotion:'EMOTION'};
+addEventListener('pointermove',e=>{ mouse.set((e.clientX/innerWidth)*2-1, -(e.clientY/innerHeight)*2+1); });
+addEventListener('click',e=>{
+  if(hovered && e.target===renderer.domElement){
+    const p=hovered.position.clone(); hovered.parent.localToWorld(p);
+    firePulse(p,new THREE.Vector3(0,0,0),0xffffff,9);
+    setTimeout(()=>firePulse(new THREE.Vector3(0,0,0),p,SYSTEMS[hovered.userData.sys].color,9),350);
+    pushThought(`⚡ <b>${SYSNAME[hovered.userData.sys]}</b> fired → core: “${hovered.userData.lore}”`, SYSTEMS[hovered.userData.sys].color);
+    coreKick=1.6;
+  }
+});
+
+// ============ animate ============
 const clock=new THREE.Clock();
+const pillPulse=document.getElementById('pillPulse'), pillFps=document.getElementById('pillFps');
+let fpsAcc=0, fpsN=0, fpsT=0;
+function easeInOut(t){ return t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; }
 function animate(){
   requestAnimationFrame(animate);
   const dt=Math.min(clock.getDelta(),0.05), t=clock.elapsedTime;
-  const act=state.activity * (state.dream?0.55:1);
+  fpsAcc+=dt; fpsN++; fpsT+=dt;
+  if(fpsT>0.5){ pillFps.textContent=`✦ ${Math.round(fpsN/fpsAcc)} fps`; fpsAcc=0; fpsN=0; fpsT=0; }
+  pillPulse.textContent=`〜 ${pulses.length} pulses`;
 
-  // core
+  let audioLevel=0;
+  if(analyser && droneOn){ analyser.getByteFrequencyData(audioData);
+    audioLevel=[...audioData].reduce((a,b)=>a+b,0)/audioData.length/255; }
+
+  const act=state.activity * (state.dream?0.55:1) * (1+audioLevel*0.8);
   coreKick=Math.max(0,coreKick-dt*1.4);
-  const pulse=1+Math.sin(t*2.2)*0.03*act+coreKick*0.12;
-  core.scale.setScalar(pulse);
+  coreUniforms.uTime.value=t*act;
+  coreUniforms.uIntensity.value=(1+coreKick*0.9+audioLevel*1.2)*state.glow;
+  coreUniforms.uDream.value += ((state.dream?1:0)-coreUniforms.uDream.value)*dt*2;
+  const pulseS=1+Math.sin(t*2.2)*0.03*act+coreKick*0.12+audioLevel*0.1;
+  core.scale.setScalar(pulseS);
   coreWire.rotation.y+=dt*0.25*act; coreWire.rotation.x+=dt*0.1*act;
   core.rotation.y+=dt*0.15*act;
-  coreHalo.material.opacity=0.45+Math.sin(t*2.2)*0.08+coreKick*0.2;
-  coreLight.intensity=(90+Math.sin(t*2.2)*20+coreKick*120)*state.glow;
-  coreMat.emissiveIntensity=(0.45+coreKick*0.8)*state.glow+ (state.focus?0.4:0);
+  coreHalo.material.opacity=0.45+Math.sin(t*2.2)*0.08+coreKick*0.2+audioLevel*0.2;
+  coreLight.intensity=(90+Math.sin(t*2.2)*20+coreKick*120+audioLevel*150)*state.glow;
   rings.forEach((r,i)=>{ r.rotation.z+=dt*(0.2+i*0.13)*act*(state.focus?2.2:1);
     r.scale.setScalar(1+Math.sin(t*1.5+i)*0.012); });
 
-  // clusters drift + neuron shimmer
   const speeds={memory:0.08,reasoning:-0.06,language:0.12,sensory:0.03,emotion:-0.1};
   for(const [sys,g] of Object.entries(clusterGroups)){
     g.rotation.y+=dt*speeds[sys]*act*(state.dream&&sys==='emotion'?2.5:1);
   }
   for(const n of allNodes){
+    if(qInput.value) continue;
     const s=1+Math.sin(t*(1.5+n.userData.phase)*act+n.userData.phase)*0.22;
-    n.scale.setScalar(s);
+    if(n!==hovered) n.scale.setScalar(s);
     n.material.emissiveIntensity=(1.2+Math.sin(t*3+n.userData.phase)*0.5)*state.glow*(state.dream&&n.userData.sys==='reasoning'?0.5:1);
   }
   lineMats.forEach(m=>{ m.opacity=(0.2+Math.sin(t*1.8)*0.06+coreKick*0.15)*state.glow; });
-  mind.rotation.y+=dt*0.02*(state.focus?0.2:1);
+  if(!state.tour) mind.rotation.y+=dt*0.02*(state.focus?0.2:1);
 
-  // dust rise
-  {
-    const p=dust.geometry.attributes.position;
-    for(let i=0;i<p.count;i++){ let y=p.getY(i)+dt*dustVel[i]*act*0.5; if(y>13)y=-13; p.setY(i,y); }
-    p.needsUpdate=true;
-  }
+  const p=dust.geometry.attributes.position;
+  for(let i=0;i<p.count;i++){ let y=p.getY(i)+dt*dustVel[i]*act*0.5; if(y>13)y=-13; p.setY(i,y); }
+  p.needsUpdate=true;
+  nebulaPts.rotation.y+=dt*0.02*act;
 
-  // pulses travel
   for(let i=pulses.length-1;i>=0;i--){
     const m=pulses[i], u=m.userData;
-    u.t+=dt*u.speed / u.from.distanceTo(u.to);
-    if(u.t>=1){ scene.remove(m); pulses.splice(i,1); coreKick=Math.min(2,coreKick+0.08); continue; }
-    m.position.lerpVectors(u.from,u.to,u.t);
-    m.position.y+=Math.sin(u.t*Math.PI)*0.6; // arc
+    u.t+=dt*u.speed / Math.max(0.001, u.from.distanceTo(u.to));
+    if(u.t>=1){ scene.remove(m); scene.remove(u.trail); m.material.dispose(); u.trail.geometry.dispose(); pulses.splice(i,1); coreKick=Math.min(2,coreKick+0.08); continue; }
+    m.position.lerpVectors(u.from,u.to,easeInOut(Math.min(1,u.t)));
+    if(u.from.distanceTo(u.to)>4) m.position.y+=Math.sin(u.t*Math.PI)*0.6;
     m.scale.setScalar(1+Math.sin(u.t*Math.PI)*0.8);
+    u.hist.unshift(m.position.clone()); u.hist.pop();
+    const tp=u.trail.geometry.attributes.position;
+    u.hist.forEach((h,k)=>tp.setXYZ(k,h.x,h.y,h.z));
+    tp.needsUpdate=true;
+    u.trail.material.opacity=0.55*(1-u.t);
   }
 
-  // hover
+  // tour flight
+  if(state.tour){
+    const wp=TOUR[tourIdx];
+    showCaption(`✦ ${tourIdx+1}/${TOUR.length} — ${wp.html}`);
+    const dp=new THREE.Vector3(...wp.pos), dg=new THREE.Vector3(...wp.tgt);
+    camera.position.lerp(dp, 1-Math.pow(0.25,dt));
+    controls.target.lerp(dg, 1-Math.pow(0.25,dt));
+    tourDwell+=dt;
+    if(camera.position.distanceTo(dp)<0.4 && tourDwell>2.2){ tourDwell=0; tourIdx++;
+      if(tourIdx>=TOUR.length){ setTour(false); pushThought('✦ <b>Tour complete</b> — wander freely. URL still holds the state.'); } }
+  }
+
   ray.setFromCamera(mouse,camera);
-  const hit=ray.intersectObjects(pickables,false)[0];
-  if(hovered && (!hit || hit.object!==hovered)){ hovered.scale.setScalar(1); hovered=null; }
+  const hit=ray.intersectObjects(pickables.filter(o=>!state.isolated||o.userData.sys===state.isolated),false)[0];
+  if(hovered && (!hit || hit.object!==hovered)){ if(!qInput.value) hovered.scale.setScalar(1); hovered=null; }
   if(hit){
     hovered=hit.object;
     hovered.scale.setScalar(2.1);
@@ -481,23 +635,19 @@ function animate(){
     document.body.style.cursor='pointer';
   } else { tooltip.style.opacity=0; document.body.style.cursor='default'; }
 
-  // dream tint
   const targetFog = state.dream?0x0a0414:0x030308;
   scene.fog.color.lerp(new THREE.Color(targetFog),dt);
   scene.background.lerp(new THREE.Color(targetFog),dt);
-
   controls.update();
-  bloom.strength=0.55*state.glow + coreKick*0.5 + (state.dream?0.25:0);
+  bloom.strength=0.55*state.glow + coreKick*0.5 + (state.dream?0.25:0) + audioLevel*0.6;
   composer.render();
 }
 animate();
-
 addEventListener('resize',()=>{
   camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
   renderer.setSize(innerWidth,innerHeight); composer.setSize(innerWidth,innerHeight);
 });
-
-// hide loader
+if(state.tour) setTour(true);
 setTimeout(()=>{ const l=document.getElementById('loader'); l.style.opacity=0; setTimeout(()=>l.remove(),850); },600);
 </script>
 </body>
