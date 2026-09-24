@@ -115,7 +115,7 @@
   </div>
   <div class="btn-row">
     <button id="bTour">▶ Tour</button>
-    <button id="bSound">♪ Drone</button>
+    <button id="bSound">✈ Drone</button>
     <button id="bShot">◉ Capture</button>
   </div>
   <label class="slider">NEURAL ACTIVITY <span id="vAct">1.0</span></label>
@@ -123,7 +123,7 @@
   <label class="slider">SYNAPTIC GLOW <span id="vGlow">1.0</span></label>
   <input id="sGlow" type="range" min="0" max="3" step="0.05" value="1" />
   <input id="q" type="text" placeholder="Search thoughts… e.g. planning, curiosity" />
-  <div id="hint">Drag orbit · scroll zoom · <b>hover</b> inspect · <b>click neuron</b> fire → core · <b>legend</b> isolates · share URL saves state.</div>
+  <div id="hint">Drag orbit · scroll zoom · <b>hover</b> or <b>fly close</b> to auto-reveal bubbles · <b>click</b> fires → core · ✈ Drone patrols · <b>legend</b> isolates.</div>
 </div>
 
 <div id="thoughts" class="panel">
@@ -162,6 +162,7 @@ function syncURL(){
     if(state.isolated) p.set('sys', state.isolated);
     if(state.activity !== 1) p.set('activity', state.activity.toFixed(2));
     if(state.glow !== 1) p.set('glow', state.glow.toFixed(2));
+    if(state.autoLabels===false) p.set('autolabels','0');
     history.replaceState(null,'', (p.toString() ? '?'+p.toString() : location.pathname));
   }, 400);
 }
@@ -353,6 +354,57 @@ let dust, dustVel;
   mind.add(dust);
 }
 
+// ============ SURVEY DRONE (quadcopter — patrols the mind) ============
+const drone = new THREE.Group();
+const rotors = [];
+let droneAngle = 0.6;
+{
+  const hullMat = new THREE.MeshStandardMaterial({ color:0x1a2233, metalness:0.85, roughness:0.35 });
+  const accentMat = new THREE.MeshStandardMaterial({ color:0x0b1020, emissive:0x00e5ff, emissiveIntensity:1.4, metalness:0.4, roughness:0.4 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.5,0.34,1.5), hullMat);
+  drone.add(body);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(0.42,20,14,0,Math.PI*2,0,Math.PI/2), accentMat);
+  dome.position.y=0.17; drone.add(dome);
+  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.13,12,12), new THREE.MeshBasicMaterial({ color:0xd8f6ff }));
+  eye.position.set(0,0.02,0.78); drone.add(eye);
+  const eyeHalo = new THREE.Sprite(new THREE.SpriteMaterial({map:softTex,color:0x9beaff,transparent:true,opacity:0.8,depthWrite:false,blending:THREE.AdditiveBlending}));
+  eyeHalo.scale.set(0.9,0.9,1); eyeHalo.position.copy(eye.position); drone.add(eyeHalo);
+  const armGeo = new THREE.BoxGeometry(1.15,0.09,0.16);
+  [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([sx,sz])=>{
+    const arm = new THREE.Mesh(armGeo, hullMat);
+    arm.position.set(sx*0.75,0.05,sz*0.75); arm.rotation.y = -sx*sz*Math.PI/4;
+    drone.add(arm);
+    const motor = new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.13,0.22,12), hullMat);
+    motor.position.set(sx*1.25,0.14,sz*1.25); drone.add(motor);
+    const rotor = new THREE.Group(); rotor.position.set(sx*1.25,0.28,sz*1.25);
+    const bladeGeo = new THREE.BoxGeometry(0.95,0.02,0.09);
+    const b1 = new THREE.Mesh(bladeGeo, new THREE.MeshBasicMaterial({color:0xaac4dd,transparent:true,opacity:0.75}));
+    const b2 = b1.clone(); b2.rotation.y = Math.PI/2;
+    rotor.add(b1); rotor.add(b2); drone.add(rotor); rotors.push(rotor);
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(0.5,24),
+      new THREE.MeshBasicMaterial({color:0x88bbff,transparent:true,opacity:0.08,side:THREE.DoubleSide,depthWrite:false}));
+    disc.rotation.x=-Math.PI/2; disc.position.copy(rotor.position); disc.position.y-=0.02; drone.add(disc);
+  });
+  const legGeo = new THREE.BoxGeometry(0.08,0.7,0.08);
+  [[0.55,0.55],[-0.55,0.55],[0.55,-0.55],[-0.55,-0.55]].forEach(([x,z])=>{
+    const leg=new THREE.Mesh(legGeo,hullMat); leg.position.set(x,-0.45,z); drone.add(leg);
+  });
+  const navL = new THREE.Mesh(new THREE.SphereGeometry(0.07,10,10), new THREE.MeshBasicMaterial({color:0xff3344}));
+  navL.position.set(-0.78,0.02,0); drone.add(navL);
+  const navR = new THREE.Mesh(new THREE.SphereGeometry(0.07,10,10), new THREE.MeshBasicMaterial({color:0x33ff77}));
+  navR.position.set(0.78,0.02,0); drone.add(navR);
+  const tag = makeLabel('✈ DRONE','#9beaff'); tag.scale.set(4.4,1.1,1); tag.position.y=1.3; drone.add(tag);
+  const lamp = new THREE.PointLight(0x66ccff, 8, 12, 1.8); lamp.position.set(0,0.5,0); drone.add(lamp);
+  const beam = new THREE.SpotLight(0xbfe6ff, 150, 34, 0.46, 0.55, 1.4);
+  beam.position.set(0,-0.2,0.4); drone.add(beam); drone.add(beam.target);
+  beam.target.position.set(0,-8,3);
+  drone.userData.beam = beam;
+  drone.position.set(14,6,14);
+  drone.visible = false;
+  scene.add(drone);
+}
+function setDroneVisible(on){ drone.visible = on; }
+
 // ============ PULSES WITH TRAILS (my choice: comet-style) ============
 const pulseGeo=new THREE.SphereGeometry(0.13,10,10);
 const TRAIL_N = 14;
@@ -450,7 +502,7 @@ function setTour(on){
 }
 bTour.onclick=()=>setTour(!state.tour);
 
-// ============ SOUND DRONE (generative, reactive) ============
+// ============ SURVEY DRONE: quadcopter + hum (generative, reactive) ============
 let actx=null, analyser=null, audioData=null, droneOn=false;
 const bSound=document.getElementById('bSound');
 bSound.onclick=()=>{
@@ -468,8 +520,9 @@ bSound.onclick=()=>{
     });
   }
   droneOn=!droneOn;
-  if(droneOn){ actx.resume(); bSound.classList.add('active'); pushThought('♪ <b>Drone on</b> — you can hear the mind hum. Glow follows volume.'); }
-  else { actx.suspend(); bSound.classList.remove('active'); }
+  setDroneVisible(droneOn);
+  if(droneOn){ actx.resume(); bSound.classList.add('active'); pushThought('✈ <b>Survey drone deployed</b> — quadcopter patrolling the mind. Hum follows volume.'); }
+  else { actx.suspend(); bSound.classList.remove('active'); pushThought('✈ Drone recalled — skies quiet.'); }
 };
 
 // ============ UI ============
@@ -535,14 +588,20 @@ setInterval(()=>{ if(!document.hidden){ const t=THOUGHTS[Math.floor(Math.random(
 const ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
 const tooltip=document.getElementById('tooltip');
 let hovered=null;
+// proximity auto-inspect: show bubble when camera is close, no hover needed
+state.autoLabels = params.get('autolabels') !== '0';
+let autoNode=null;
+const AUTO_DIST=6.5;
+const _v1=new THREE.Vector3(), _v2=new THREE.Vector3();
 const SYSNAME={core:'CORE SELF',memory:'MEMORY',reasoning:'REASONING',language:'LANGUAGE',sensory:'SENSORY',emotion:'EMOTION'};
 addEventListener('pointermove',e=>{ mouse.set((e.clientX/innerWidth)*2-1, -(e.clientY/innerHeight)*2+1); });
 addEventListener('click',e=>{
-  if(hovered && e.target===renderer.domElement){
-    const p=hovered.position.clone(); hovered.parent.localToWorld(p);
+  const target = hovered || autoNode;
+  if(target && e.target===renderer.domElement){
+    const p=target.position.clone(); target.parent.localToWorld(p);
     firePulse(p,new THREE.Vector3(0,0,0),0xffffff,9);
-    setTimeout(()=>firePulse(new THREE.Vector3(0,0,0),p,SYSTEMS[hovered.userData.sys].color,9),350);
-    pushThought(`⚡ <b>${SYSNAME[hovered.userData.sys]}</b> fired → core: “${hovered.userData.lore}”`, SYSTEMS[hovered.userData.sys].color);
+    setTimeout(()=>firePulse(new THREE.Vector3(0,0,0),p,SYSTEMS[target.userData.sys].color,9),350);
+    pushThought(`⚡ <b>${SYSNAME[target.userData.sys]}</b> fired → core: “${target.userData.lore}”`, SYSTEMS[target.userData.sys].color);
     coreKick=1.6;
   }
 });
@@ -584,7 +643,7 @@ function animate(){
   for(const n of allNodes){
     if(qInput.value) continue;
     const s=1+Math.sin(t*(1.5+n.userData.phase)*act+n.userData.phase)*0.22;
-    if(n!==hovered) n.scale.setScalar(s);
+    if(n!==hovered && n!==autoNode) n.scale.setScalar(s);
     n.material.emissiveIntensity=(1.2+Math.sin(t*3+n.userData.phase)*0.5)*state.glow*(state.dream&&n.userData.sys==='reasoning'?0.5:1);
   }
   lineMats.forEach(m=>{ m.opacity=(0.2+Math.sin(t*1.8)*0.06+coreKick*0.15)*state.glow; });
@@ -594,6 +653,26 @@ function animate(){
   for(let i=0;i<p.count;i++){ let y=p.getY(i)+dt*dustVel[i]*act*0.5; if(y>13)y=-13; p.setY(i,y); }
   p.needsUpdate=true;
   nebulaPts.rotation.y+=dt*0.02*act;
+
+  // survey drone patrol: orbit, bank into turns, sweep searchlight
+  if(drone.visible){
+    droneAngle += dt*0.16*act;
+    _v1.set(Math.cos(droneAngle)*20, 4.5+Math.sin(t*0.5)*2.5+Math.sin(droneAngle*2)*1.2, Math.sin(droneAngle)*20);
+    _v2.copy(_v1).sub(drone.position);
+    drone.position.lerp(_v1, 1-Math.pow(0.2,dt));
+    if(_v2.lengthSq()>1e-6){
+      const yaw=Math.atan2(_v2.x, _v2.z);
+      let dy=yaw-drone.rotation.y;
+      while(dy>Math.PI)dy-=Math.PI*2; while(dy<-Math.PI)dy+=Math.PI*2;
+      drone.rotation.y += dy*Math.min(1,dt*3);
+      drone.rotation.z = THREE.MathUtils.clamp(-_v2.x*0.012,-0.4,0.4);
+      drone.rotation.x = THREE.MathUtils.clamp(_v2.z*0.006,-0.25,0.25);
+    }
+    drone.position.y += Math.sin(t*6)*0.008;
+    rotors.forEach((r,i)=>{ r.rotation.y += dt*(28+i*3)*state.activity; });
+    drone.userData.beam.target.position.set(Math.sin(t*0.9)*4,-9,3+Math.cos(t*0.7)*2);
+    drone.userData.beam.intensity = 120*state.glow + audioLevel*120;
+  }
 
   for(let i=pulses.length-1;i>=0;i--){
     const m=pulses[i], u=m.userData;
@@ -622,9 +701,16 @@ function animate(){
   }
 
   ray.setFromCamera(mouse,camera);
-  const hit=ray.intersectObjects(pickables.filter(o=>!state.isolated||o.userData.sys===state.isolated),false)[0];
-  if(hovered && (!hit || hit.object!==hovered)){ if(!qInput.value) hovered.scale.setScalar(1); hovered=null; }
+  const candidates = pickables.filter(o=>!state.isolated||o.userData.sys===state.isolated);
+  const hit=ray.intersectObjects(candidates,false)[0];
+  if(hovered && (!hit || hit.object!==hovered)){ if(!qInput.value && hovered!==autoNode) hovered.scale.setScalar(1); hovered=null; }
+  // clear stale auto highlight when hover takes over or node changes
+  function clearAuto(except=null){
+    if(autoNode && autoNode!==except && autoNode!==hovered && !qInput.value) autoNode.scale.setScalar(1);
+    if(autoNode && autoNode!==except) autoNode=null;
+  }
   if(hit){
+    clearAuto();
     hovered=hit.object;
     hovered.scale.setScalar(2.1);
     const u=hovered.userData, hex='#'+SYSTEMS[u.sys].color.toString(16).padStart(6,'0');
@@ -633,6 +719,30 @@ function animate(){
     const px=(mouse.x*0.5+0.5)*innerWidth+16, py=(-mouse.y*0.5+0.5)*innerHeight+16;
     tooltip.style.left=Math.min(px,innerWidth-290)+'px'; tooltip.style.top=Math.min(py,innerHeight-140)+'px';
     document.body.style.cursor='pointer';
+  } else if(state.autoLabels){
+    // proximity: nearest neuron to camera within AUTO_DIST gets its bubble automatically
+    let best=null, bestD=AUTO_DIST;
+    for(const o of candidates){
+      o.getWorldPosition(_v1);
+      const d=camera.position.distanceTo(_v1);
+      if(d<bestD){ bestD=d; best=o; }
+    }
+    if(best){
+      clearAuto(best);
+      autoNode=best;
+      autoNode.scale.setScalar(1.7);
+      const u=autoNode.userData, hex='#'+SYSTEMS[u.sys].color.toString(16).padStart(6,'0');
+      autoNode.getWorldPosition(_v1); _v2.copy(_v1).project(camera);
+      // behind camera? hide
+      if(_v2.z<1){
+        const px=(_v2.x*0.5+0.5)*innerWidth+16, py=(-_v2.y*0.5+0.5)*innerHeight+16;
+        tooltip.innerHTML=`<div class="sys" style="color:${hex}">${SYSNAME[u.sys]} · neuron #${u.idx} · ${bestD.toFixed(1)}m ◉ NEARBY</div><b>“${u.lore}”</b><div style="opacity:0.6;margin-top:4px">hover for precise · click neuron mesh to fire → core</div>`;
+        tooltip.style.opacity=1;
+        tooltip.style.left=Math.min(Math.max(px,-10),innerWidth-290)+'px';
+        tooltip.style.top=Math.min(Math.max(py,-10),innerHeight-150)+'px';
+      } else tooltip.style.opacity=0;
+      document.body.style.cursor='default';
+    } else { clearAuto(); tooltip.style.opacity=0; document.body.style.cursor='default'; }
   } else { tooltip.style.opacity=0; document.body.style.cursor='default'; }
 
   const targetFog = state.dream?0x0a0414:0x030308;
